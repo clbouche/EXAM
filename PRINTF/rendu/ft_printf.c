@@ -6,7 +6,7 @@
 /*   By: clbouche <clbouche@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/09 11:39:18 by clbouche          #+#    #+#             */
-/*   Updated: 2021/12/09 15:03:34 by clbouche         ###   ########.fr       */
+/*   Updated: 2021/12/10 12:34:12 by clbouche         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 #include <stdarg.h>
 #include <unistd.h>
 #include <stdlib.h>
-
+#include <limits.h>
 
 int	ft_putchar(int c)
 {
@@ -30,66 +30,62 @@ int	ft_putstr(char *s)
 	return (i);
 }
 
-// int	ft_countlen(long unsigned int n, int basel)
-// {
-// 	int i = 0;
-	
-// 	if (n == 0)
-// 		return (1);
-// 	while (n)
-// 	{
-// 		n /= basel;
-// 		i++;
-// 	}
-// 	//if (n < 0)
-// 	//	i++;
-// 	return (i);
-// }
-
-static int ft_count(long unsigned int n, int base)
+int	ft_len(unsigned int nbr, int basel)
 {
-	int i;
+	unsigned int n = nbr;
+	int len = 0;
+
 	if (n == 0)
 		return (1);
-	i = 0;
-	while (n)
+	while(n)
 	{
-		n = n / base;
-		i++;
+		n /= basel;
+		len++;
 	}
-	return (i);
+	if (nbr < 0)
+		len++;
+	return(len);
 }
 
-// void	ft_putnbr(int nbr)
-// {
-// 	if (nbr < 0)
-// 	{
-// 		ft_putchar('-');
-// 		nbr *= -1;
-// 	}
-// 	if (nbr >= 10)
-// 		ft_putnbr (nbr / 10);
-// 	ft_putchar((nbr % 10 + '0'));
-// }
-
-void ft_putnbr(int n)
+int	ft_putnbr(int nbr)
 {
-	if (n < 0)
+	int len = 0;
+	unsigned int unbr = 0;
+
+	if (nbr < 0)
 	{
 		ft_putchar('-');
-		n *= -1;
-	}
-	if(n > 9)
-	{
-		ft_putnbr(n /10);
-		ft_putnbr(n % 10);
+		unbr = -nbr;
+		len++;
+		len += ft_len(unbr, 10);
 	}
 	else
 	{
-		ft_putchar(n + '0');
+		unbr = nbr;
+		len += ft_len(unbr, 10);
 	}
-	//printf("ret putnbr =================%i\n", ret);
+	if (unbr >= 10)
+		ft_putnbr(unbr / 10);
+	ft_putchar(unbr % 10 + '0');
+	return (len);
 }
+
+static char	*ft_itoa_base(long unsigned int num, int basel)
+{
+	char *hexa;
+	char *base = "0123456789abcdef";
+	int len = ft_len(num, basel);
+	if (!(hexa = malloc(sizeof(char) * len + 1)))
+		return (NULL);
+	hexa[len--] = '\0';
+	while (len >= 0)
+	{
+		hexa[len--] = base[num % basel];
+		num /= basel;
+	}
+	return (hexa);
+}
+
 
 int	ft_printf(const char *fmt, ...)
 {
@@ -103,26 +99,30 @@ int	ft_printf(const char *fmt, ...)
 	{
 		if (*str == '%')
 		{
-			str++;
-			if (*str == '%')
-				rtn += ft_putchar('%');
-			else if (*str == 's')
+			if (*(str + 1) == 's')
 			{
 				char *s = va_arg(ap, char *);
 				if (!s)
 					s = "(null)";
 				rtn += ft_putstr(s);
+				str++;
 			}
-			else if (*str == 'd')
+			else if (*(str + 1)== 'd')
 			{
 				int num = va_arg(ap, int);
 				rtn += ft_putnbr(num);
+				str++;
 			}
-			// if (*str == 'x')
-			// {
-			// 	int hexa = va_arg(ap, long unsigned int);
-			// }
-			
+			else if (*(str + 1) == 'x')
+			{
+				unsigned int hexa = va_arg(ap, unsigned int);
+				char *s = ft_itoa_base((long unsigned)hexa, 16);
+				rtn += ft_putstr(s);
+				free(s);
+				str++;
+			}
+			else
+				rtn += ft_putchar(*str);
 		}
 		else
 			rtn += ft_putchar(*str);
@@ -134,25 +134,58 @@ int	ft_printf(const char *fmt, ...)
 
 int main(void)
 {
+	
 	// printf("TEST S\n");
+	// char *s = NULL;
+
+	// printf("rtn mine: [%i]   ", ft_printf("%s\n%", "Hello World!"));
+	// printf("rtn printf : [%i]   ", printf("%s\n%", "Hello World!"));
+
 	// printf("rtn mine: [%i]   ", ft_printf("%s\n", "Hello World!"));
 	// printf("rtn printf : [%i]   ", printf("%s\n", "Hello World!"));
+	
+	// printf("rtn mine: [%i]   ", ft_printf("%", "Hello World!"));
+	// printf("rtn printf : [%i]   ", printf("%", "Hello World!"));
+	
+	// printf("rtn mine: [%i]\n", ft_printf("%s\n", s));
+	// printf("rtn printf : [%i]\n", printf("%s\n", s));
 
 	// printf("\n\nTEST D\n");
+
+	// printf("rtn mine:[%i]\n", ft_printf("%d\n", INT_MIN));
+	// printf("rtn printf : [%i]\n", printf("%d\n", INT_MIN));
+
+	// printf("rtn mine: [%i]\n", ft_printf("%d\n", INT_MAX));
+	// printf("rtn printf : [%i]\n", printf("%d\n", INT_MAX));
+	
 	// printf("rtn mine: [%i]   ", ft_printf("%d\n", 42));
 	// printf("rtn printf : [%i]   ", printf("%d\n", 42));
 	
-	printf("rtn mine : [%i]   ", ft_printf("%", -42));
-	printf("rtn print: [%i]   ", printf("%d\n", -42));
+	// printf("rtn mine : [%i]   ", ft_printf("%d\n", -42));
+	// printf("rtn print: [%i]   ", printf("%d\n", -42));
 	
-	// printf("rtn mine: [%i]   ", ft_printf("%d\n", 2147483647));
-	// printf("rtn printf : [%i]   ", printf("%d\n", 2147483647));
-	
-	// printf("rtn mine: [%i]   ", ft_printf("%d\n", -2147483648));
-	// printf("rtn printf : [%i]   ", printf("%ld\n", -21474836487));	
 
 	// printf("\n\nTEST X\n");
 	// printf("rtn mine: [%i]   ", ft_printf("%x\n", 42));
 	// printf("rtn printf : [%i]   ", printf("%x\n", 42));
+
+	// printf("rtn mine: [%i]   ", ft_printf("%x\n", -42));
+	// printf("rtn printf : [%i]   ", printf("%x\n", -42));
+
+	// printf("rtn mine: [%i]\n", ft_printf("%x\n", INT_MAX));
+	// printf("rtn printf : [%i]\n", printf("%x\n", INT_MAX));
+
+	// printf("rtn mine: [%i]\n", ft_printf("%x\n", INT_MIN));
+	// printf("rtn printf : [%i]\n", printf("%x\n", INT_MIN));
+
+
+	// printf("\n\nALL\n");
+	// printf("rtn mine:[%i]\n", ft_printf(".%s%d%s%x.\n","en int 42 = ", 42, "en hexa 42 = ", 42));
+	// printf("rtn printf : [%i]\n", printf(".%s%d%s%x.\n","en int 42 = ", 42, "en hexa 42 = ", 42));
+
+	// printf("rtn mine: [%i]\n",printf("%s     coucou\n"));
+	
+	// printf("rtn mine: [%i]   ", ft_printf("%k\n", -42));
+	
 	return (0);
 }
