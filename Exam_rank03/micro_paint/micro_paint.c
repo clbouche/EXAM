@@ -6,7 +6,7 @@
 /*   By: clbouche <clbouche@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/11 09:24:04 by clbouche          #+#    #+#             */
-/*   Updated: 2022/01/24 17:16:03 by clbouche         ###   ########.fr       */
+/*   Updated: 2022/01/27 11:20:20 by clbouche         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,18 +34,17 @@ int	ft_putstr_error(char *s)
 
 int	checker(float i, float j)
 {
-	if (i < x || j < y || i > (x + width) || j > (y + height)) //on est dans le rectangle
+	if (i < x || j < y || i > (x + width) || j > (y + height)) //in
 		return (0);
-	else if (i - x < 1 || j - y < 1 || (x + width) - i < 1 || (y + height) - j < 1) //on est sur une bordure
+	else if (i - x < 1 || j - y < 1 || (x + width) - i < 1 || (y + height) - j < 1) //border
 		return (1);
-	return (2);
+	return (2); //out
 }
 
 void	draw_box(void)
 {
 	int i, j = 0, check = 0;
 
-	printf("enter\n");
 	while(j < main_height)
 	{
 		i = 0;
