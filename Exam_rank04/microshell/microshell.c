@@ -8,6 +8,10 @@
 char	**cmd;
 int		i = 0;
 
+//finir builtins cd 
+//faire l'execution avec pipe 
+//faire la gestion d'erreur
+
 int		ft_strlen(char *s)
 {
 	int i = 0;
@@ -49,7 +53,7 @@ char	**split_cmd(char **arg, int size, int *i)
 	return (cmd);
 }
 
-char	**check_comma(char **arg, int *i)
+char	**parsing(char **arg, int *i)
 {
 	int size = size_cmd(&arg[*i], ";");
 	if (!size)
@@ -68,7 +72,7 @@ int	exec_builtin(void)
 	return 0;
 }
 
-char	**check_pipe(void)
+char	**check_pipe(char **cmd)
 {
 	if (!cmd)
 		return (NULL);
@@ -81,8 +85,7 @@ char	**check_pipe(void)
 	return (NULL);
 }
 
-
-int	exec_cmd(char **env)
+void	exec_cmd(char **cmd, char **env)
 {
 	pid_t pid;
 
@@ -99,25 +102,60 @@ int	exec_cmd(char **env)
 		}
 	}
 	waitpid(0, NULL, 0);
-	return (0);
 }
 
-void	exec_pipe(void)
+int exec_son(char** free_ptr, char** env, char** tmp, int fd_in, int fd_pipe[2])
 {
-	//il faut executer jusqu'au pipe en envoyant a exec_cmd
-	printf("PIPEEEE\n");
+	if (dup2(fd_in, STDIN_FILENO) < 0)
+		ft_error("error 5\n");
+	if (check_pipe(tmp) && dup2(fd_pipe[1], STDOUT_FILENO) < 0)
+		ft_error("error 4\n");
+	close(fd_in);
+	close(fd_pipe[0]);
+	close(fd_pipe[1]);
+	tmp[size_cmd(tmp, "|")] = NULL;
+	exec_cmd(tmp, env);
+	free(free_ptr);
+	exit(0);
+}
+
+void	execution(char **cmd, char **env)
+{
+	if (!check_pipe(cmd))
+		return (exec_cmd(cmd, env));
+
+	int fd_in;
+	int fd_pipe[2];
+	char **tmp = cmd;
+	int nb_wait = 0;
+	pid_t pid;
+
+	if ((fd_in = dup(STDIN_FILENO)) < 0)
+		ft_error("prout\n");
+	while (tmp)
+	{
+		if (pipe(fd_pipe) < 0 || (pid = fork()) < 0)
+			ft_error("prout 2\n");		
+		if (!pid)
+			exec_son(cmd, env, tmp, fd_in, fd_pipe);		
+		else
+		{
+			if (dup2(fd_pipe[0], fd_in) < 0)
+				ft_error("prout 3\n");
+			close(fd_pipe[0]);
+			close(fd_pipe[1]);
+			++nb_wait;
+			tmp = check_pipe(tmp);
+		}
+	}
 }
 
 int main(int argc, char **argv, char **env) 
 {
 	while (++i < argc)
 	{
-		cmd = check_comma(argv, &i);
-		printf("i = %i\n", i);
-		if (check_pipe())
-			exec_pipe();
-		else
-			exec_cmd(env);
+		cmd = parsing(argv, &i);
+		execution(cmd, env);
 		free(cmd);
 		cmd = NULL;
 	}
