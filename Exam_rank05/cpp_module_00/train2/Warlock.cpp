@@ -26,25 +26,6 @@ void Warlock::introduce() const
 	std::cout << _name << ": I am " << _name << ", " << _title << "!" << std::endl;
 }
 
-void	Warlock::learnSpell(ASpell *spell)
-{
-	if (spell)
-		_storage.insert(std::make_pair<std::string, ASpell *>(spell->getName(), spell->clone()));
-}
-void	Warlock::forgetSpell(std::string spellName)
-{
-	std::map<std::string, ASpell *>::iterator it = _storage.find(spellName);
-	if (it != _storage.end())
-		delete it->second;
-	_storage.erase(spellName);
-}
-void	Warlock::launchSpell(std::string spellName, ATarget &target)
-{
-	ASpell *spell = _storage[spellName];
-	if (spell)
-		spell->launch(target);
-}
-
 Warlock::~Warlock()
 {
 	std::cout << _name << ": My job here is done!" << std::endl;
